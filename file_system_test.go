@@ -18,19 +18,19 @@ import (
 
 func TestDelete(t *testing.T) {
 	for _, addr := range ftpdAddrs {
-		c, err := DialConfig(Config{User: "goftp", Password: "rocks"}, addr)
+		c, err := DialConfig(goftpConfig, addr)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		os.Remove("testroot/git-ignored/foo")
+		os.Remove("/Users/raincole/ftp/git-ignored/foo")
 
 		err = c.Store("git-ignored/foo", bytes.NewReader([]byte{1, 2, 3, 4}))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		_, err = os.Open("testroot/git-ignored/foo")
+		_, err = os.Open("/Users/raincole/ftp/git-ignored/foo")
 		if err != nil {
 			t.Fatal("file is not there?", err)
 		}
@@ -51,19 +51,19 @@ func TestDelete(t *testing.T) {
 
 func TestRename(t *testing.T) {
 	for _, addr := range ftpdAddrs {
-		c, err := DialConfig(Config{User: "goftp", Password: "rocks"}, addr)
+		c, err := DialConfig(goftpConfig, addr)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		os.Remove("testroot/git-ignored/foo")
+		os.Remove("/Users/raincole/ftp/git-ignored/foo")
 
 		err = c.Store("git-ignored/foo", bytes.NewReader([]byte{1, 2, 3, 4}))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		_, err = os.Open("testroot/git-ignored/foo")
+		_, err = os.Open("/Users/raincole/ftp/git-ignored/foo")
 		if err != nil {
 			t.Fatal("file is not there?", err)
 		}
@@ -72,7 +72,7 @@ func TestRename(t *testing.T) {
 			t.Error(err)
 		}
 
-		newContents, err := ioutil.ReadFile("testroot/git-ignored/bar")
+		newContents, err := ioutil.ReadFile("/Users/raincole/ftp/git-ignored/bar")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -89,19 +89,19 @@ func TestRename(t *testing.T) {
 
 func TestMkdirRmdir(t *testing.T) {
 	for _, addr := range ftpdAddrs {
-		c, err := DialConfig(Config{User: "goftp", Password: "rocks"}, addr)
+		c, err := DialConfig(goftpConfig, addr)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		os.Remove("testroot/git-ignored/foodir")
+		os.Remove("/Users/raincole/ftp/git-ignored/foodir")
 
 		_, err = c.Mkdir("git-ignored/foodir")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		stat, err := os.Stat("testroot/git-ignored/foodir")
+		stat, err := os.Stat("/Users/raincole/ftp/git-ignored/foodir")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -115,7 +115,7 @@ func TestMkdirRmdir(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		_, err = os.Stat("testroot/git-ignored/foodir")
+		_, err = os.Stat("/Users/raincole/ftp/git-ignored/foodir")
 		if !os.IsNotExist(err) {
 			t.Error("directory should be gone")
 		}
@@ -125,7 +125,7 @@ func TestMkdirRmdir(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		os.Remove(`testroot/git-ignored/dir-with-"`)
+		os.Remove(`/Users/raincole/ftp/git-ignored/dir-with-"`)
 		dir, err := c.Mkdir(`git-ignored/dir-with-"`)
 		if dir != `git-ignored/dir-with-"` && dir != path.Join(cwd, `git-ignored/dir-with-"`) {
 			t.Errorf("Unexpected dir-with-quote value: %s", dir)
@@ -253,7 +253,7 @@ func TestReadDir(t *testing.T) {
 		var names []string
 
 		for _, item := range list {
-			expected, err := os.Stat("testroot/" + item.Name())
+			expected, err := os.Stat("/Users/raincole/ftp/" + item.Name())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -267,58 +267,7 @@ func TestReadDir(t *testing.T) {
 
 		// sanity check names are what we expected
 		sort.Strings(names)
-		if !reflect.DeepEqual(names, []string{"git-ignored", "lorem.txt", "subdir"}) {
-			t.Errorf("got: %v", names)
-		}
-
-		if c.numOpenConns() != len(c.freeConnCh) {
-			t.Error("Leaked a connection")
-		}
-	}
-}
-
-func TestReadDirNoMLSD(t *testing.T) {
-	// pureFTPD seems to have some issues with timestamps in LIST output
-	for _, addr := range proAddrs {
-		config := goftpConfig
-		config.stubResponses = map[string]stubResponse{
-			"MLSD ": {500, "'MLSD ': command not understood."},
-		}
-
-		c, err := DialConfig(config, addr)
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		list, err := c.ReadDir("")
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if len(list) != 3 {
-			t.Errorf("expected 3 items, got %d", len(list))
-		}
-
-		var names []string
-
-		for _, item := range list {
-			expected, err := os.Stat("testroot/" + item.Name())
-			if err != nil {
-				t.Fatal(err)
-			}
-
-			if err := compareFileInfos(item, expected); err != nil {
-				t.Errorf("mismatch on %s: %s (%s)", item.Name(), err, item.Sys().(string))
-			}
-
-			names = append(names, item.Name())
-		}
-
-		// sanity check names are what we expected
-		sort.Strings(names)
-		if !reflect.DeepEqual(names, []string{"git-ignored", "lorem.txt", "subdir"}) {
+		if !reflect.DeepEqual(names, []string{"data", "git-ignored", "subdir"}) {
 			t.Errorf("got: %v", names)
 		}
 
@@ -336,49 +285,18 @@ func TestStat(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// check root
-		info, err := c.Stat("")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// work around inconsistency between pure-ftpd and proftpd
-		var realStat os.FileInfo
-		if info.Name() == "testroot" {
-			realStat, err = os.Stat("testroot")
-		} else {
-			realStat, err = os.Stat("testroot/.")
-		}
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if err := compareFileInfos(info, realStat); err != nil {
-			t.Error(err)
-		}
-
 		// check a file
+		info, err := c.Stat("not-exist.abc")
+		if !os.IsNotExist(err){
+			t.Fatal(err)
+		}
+
 		info, err = c.Stat("subdir/1234.bin")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		realStat, err = os.Stat("testroot/subdir/1234.bin")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if err := compareFileInfos(info, realStat); err != nil {
-			t.Error(err)
-		}
-
-		// check a directory
-		info, err = c.Stat("subdir")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		realStat, err = os.Stat("testroot/subdir")
+		realStat, err := os.Stat("/Users/raincole/ftp/subdir/1234.bin")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -393,42 +311,6 @@ func TestStat(t *testing.T) {
 	}
 }
 
-func TestStatNoMLST(t *testing.T) {
-	// pureFTPD seems to have some issues with timestamps in LIST output
-	for _, addr := range proAddrs {
-		config := goftpConfig
-		config.stubResponses = map[string]stubResponse{
-			"MLST ":                {500, "'MLST ': command not understood."},
-			"MLST subdir/1234.bin": {500, "'MLST ': command not understood."},
-			"MLST subdir":          {500, "'MLST ': command not understood."},
-		}
-
-		c, err := DialConfig(config, addr)
-
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		// check a file
-		info, err := c.Stat("subdir/1234.bin")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		realStat, err := os.Stat("testroot/subdir/1234.bin")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if err := compareFileInfos(info, realStat); err != nil {
-			t.Error(err)
-		}
-
-		if c.numOpenConns() != len(c.freeConnCh) {
-			t.Error("Leaked a connection")
-		}
-	}
-}
 func TestGetwd(t *testing.T) {
 	for _, addr := range ftpdAddrs {
 		c, err := DialConfig(goftpConfig, addr)
@@ -447,12 +329,12 @@ func TestGetwd(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if cwd != "/" && cwd != path.Join(realCwd, "testroot") {
+		if cwd != "/" && cwd != path.Join(realCwd, "/Users/raincole/ftp") {
 			t.Errorf("Unexpected cwd: %s", cwd)
 		}
 
 		// cd into quote directory so we can test Getwd's quote handling
-		os.Remove(`testroot/git-ignored/dir-with-"`)
+		os.Remove(`/Users/raincole/ftp/git-ignored/dir-with-"`)
 		dir, err := c.Mkdir(`git-ignored/dir-with-"`)
 		if err != nil {
 			t.Fatal(err)

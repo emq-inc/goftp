@@ -171,26 +171,16 @@ func commandNotSupporterdError(err error) bool {
 // be used. You may have to set ServerLocation in your config to get (more)
 // accurate ModTimes in this case.
 func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
-	entries, err := c.dataStringList("MLSD %s", path)
-
-	parser := parseMLST
-
+	entries, err := c.dataStringList("LIST %s", path)
 	if err != nil {
-		if !commandNotSupporterdError(err) {
-			return nil, err
-		}
-
-		entries, err = c.dataStringList("LIST %s", path)
-		if err != nil {
-			return nil, err
-		}
-		parser = func(entry string, skipSelfParent bool) (os.FileInfo, error) {
-			return parseLIST(entry, c.config.ServerLocation, skipSelfParent)
-		}
+		return nil, err
+	}
+	parser := func(entry string, skipSelfParent bool) (os.FileInfo, error) {
+		return parseLIST(entry, c.config.ServerLocation, skipSelfParent)
 	}
 
 	var ret []os.FileInfo
-	for _, entry := range entries {
+ 	for _, entry := range entries {
 		info, err := parser(entry, true)
 		if err != nil {
 			c.debug("error in ReadDir: %s", err)
@@ -213,28 +203,22 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 // is a directory. You may have to set ServerLocation in your config to get
 // (more) accurate ModTimes when using "LIST".
 func (c *Client) Stat(path string) (os.FileInfo, error) {
-	lines, err := c.controlStringList("MLST %s", path)
-	if err != nil {
-		if commandNotSupporterdError(err) {
-			lines, err = c.dataStringList("LIST %s", path)
-			if err != nil {
-				return nil, err
-			}
-
-			if len(lines) != 1 {
-				return nil, ftpError{err: fmt.Errorf("unexpected LIST response: %v", lines)}
-			}
-
-			return parseLIST(lines[0], c.config.ServerLocation, false)
+	lines, err := c.dataStringList("LIST %s", path)
+	switch err := err.(type) {
+	case ftpError:
+		if err.code == 450 {
+			return nil, os.ErrNotExist
 		}
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	if len(lines) != 3 {
-		return nil, ftpError{err: fmt.Errorf("unexpected MLST response: %v", lines)}
+	if len(lines) != 1 {
+		return nil, ftpError{err: fmt.Errorf("unexpected LIST response: %v", lines)}
 	}
 
-	return parseMLST(strings.TrimLeft(lines[1], " "), false)
+	return parseLIST(lines[0], c.config.ServerLocation, false)
 }
 
 func extractDirName(msg string) (string, error) {

@@ -215,12 +215,12 @@ func TestStore(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		toSend, err := os.Open("testroot/subdir/1234.bin")
+		toSend, err := os.Open("/Users/raincole/ftp/subdir/1234.bin")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		os.Remove("testroot/git-ignored/foo")
+		os.Remove("/Users/raincole/ftp/git-ignored/foo")
 
 		err = c.Store("git-ignored/foo", toSend)
 
@@ -228,7 +228,7 @@ func TestStore(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		stored, err := ioutil.ReadFile("testroot/git-ignored/foo")
+		stored, err := ioutil.ReadFile("/Users/raincole/ftp/git-ignored/foo")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -261,12 +261,12 @@ func TestStoreActive(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		toSend, err := os.Open("testroot/subdir/1234.bin")
+		toSend, err := os.Open("/Users/raincole/ftp/subdir/1234.bin")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		os.Remove("testroot/git-ignored/foo")
+		os.Remove("/Users/raincole/ftp/git-ignored/foo")
 
 		err = c.Store("git-ignored/foo", toSend)
 
@@ -274,7 +274,7 @@ func TestStoreActive(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		stored, err := ioutil.ReadFile("testroot/git-ignored/foo")
+		stored, err := ioutil.ReadFile("/Users/raincole/ftp/git-ignored/foo")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -347,7 +347,7 @@ func TestResumeStoreOnWriteError(t *testing.T) {
 			},
 		}
 
-		os.Remove("testroot/git-ignored/big")
+		os.Remove("/Users/raincole/ftp/git-ignored/big")
 
 		err = c.Store("git-ignored/big", seeker)
 
@@ -355,7 +355,7 @@ func TestResumeStoreOnWriteError(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		stored, err := ioutil.ReadFile("testroot/git-ignored/big")
+		stored, err := ioutil.ReadFile("/Users/raincole/ftp/git-ignored/big")
 		if err != nil {
 			t.Fatal(err)
 		}

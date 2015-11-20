@@ -87,7 +87,7 @@ func TestRawConn(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		if !strings.Contains(string(got), "lorem.txt") {
+		if !strings.Contains(string(got), "subdir") {
 			t.Errorf("got %s", got)
 		}
 
