@@ -206,7 +206,7 @@ func (c *Client) Stat(path string) (os.FileInfo, error) {
 	lines, err := c.dataStringList("LIST %s", path)
 	switch err := err.(type) {
 	case ftpError:
-		if err.code == 450 {
+		if err.code == 450 || err.code == 550 {
 			return nil, os.ErrNotExist
 		}
 	}

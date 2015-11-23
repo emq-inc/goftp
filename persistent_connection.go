@@ -516,8 +516,11 @@ func (pconn *persistentConn) logInTLS() error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
-	err = pconn.sendCommandExpected(replyGroupPositiveCompletion, "PBSZ 0")
+func (pconn *persistentConn) setTLS() error {
+	err := pconn.sendCommandExpected(replyGroupPositiveCompletion, "PBSZ 0")
 	if err != nil {
 		return err
 	}
@@ -528,6 +531,5 @@ func (pconn *persistentConn) logInTLS() error {
 	}
 
 	pconn.debug("successfully upgraded to TLS")
-
 	return nil
 }
